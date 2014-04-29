@@ -1,5 +1,6 @@
 var fs = require('fs'),
-  protagonist = require('protagonist');
+  protagonist = require('protagonist'),
+  jsonParser = require('jsonlint').parser;
 
 function lineNumberFromCharacterIndex(string, index) {
   return string.substring(0, index).split("\n").length;
@@ -40,7 +41,7 @@ function isJsonResponse(response) {
 function isResponseValid(response) {
   if (isJsonResponse(response)) {
     try {
-      JSON.parse(response.body);
+      jsonParser.parse(response.body);
     } catch (e) {
       return e;
     }
@@ -68,20 +69,21 @@ module.exports = function (fileName) {
         console.error('Warning: ' + result.warnings[j].message + ' on line ' + lineNumber);
       }
 
-      var hasError = false;
+      var errors = [];
 
       examples(result.ast, function (example, action, resource) {
         for (var i in example.responses) {
           var response = example.responses[i];
           var valid = isResponseValid(response);
           if (valid !== true) {
-            console.error('Error: ' + valid + " in JSON response '" + response.name + "' for action '" + action.name + "' in '" + resource.name + "'");
-            hasError = true;
+            var errorMessage = '    ' + valid.message.replace(/\n/g, '\n    ');
+            errors.push("Error in JSON response '" + response.name + "' for action '" + action.name + "' in '" + resource.name + "':\n" + errorMessage);
           }
         }
       });
 
-      if (hasError) {
+      if (errors.length > 0) {
+        console.error(errors.join('\n\n'));
         process.exit(1);
       }
     });
