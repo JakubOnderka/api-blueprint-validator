@@ -11,7 +11,7 @@ function examples(ast, callback) {
     resourceGroup.resources.forEach(function (resource) {
       resource.actions.forEach(function (action) {
         action.examples.forEach(function (example) {
-          callback(example, action, resource);
+          callback(example, action, resource, resourceGroup);
         });
       });
     });
@@ -37,6 +37,26 @@ function isValidRequestOrResponse(requestOrResponse) {
   return true;
 }
 
+function errorPosition(example, action, resource, resourceGroup) {
+  var output = [];
+  if (resourceGroup.name) {
+    output.push('group "' + resourceGroup.name + '"');
+  }
+  if (resource.name) {
+    output.push('resource "' + resourceGroup.name + '"');
+  } else {
+    output.push('resouce "' + resource.uriTemplate + '"');
+  }
+  if (action.name) {
+    output.push('action "' + action.name + '"');
+  }
+  if (example.name) {
+    output.push('example "' + example.name + '"');
+  }
+
+  return 'in ' + output.join(', ');
+}
+
 module.exports = function (fileName, validateRequests, validateResponses) {
   fs.readFile(fileName, 'utf8', function (error, data) {
     if (error) {
@@ -58,13 +78,14 @@ module.exports = function (fileName, validateRequests, validateResponses) {
 
       var errors = [];
 
-      examples(result.ast, function (example, action, resource) {
+      examples(result.ast, function (example, action, resource, resourceGroup) {
         if (validateRequests) {
           example.requests.forEach(function (request) {
             var valid = isValidRequestOrResponse(request);
             if (valid !== true) {
-              var errorMessage = '    ' + valid.message.replace(/\n/g, '\n    ');
-              errors.push("Error in JSON request for action '" + action.name + "' in '" + resource.name + "':\n" + errorMessage);
+              var message = '    ' + valid.message.replace(/\n/g, '\n    ');
+              var position = errorPosition(example, action, resource, resourceGroup);
+              errors.push('Error in JSON request ' + position + '\n' + message);
             }
           });
         }
@@ -73,8 +94,9 @@ module.exports = function (fileName, validateRequests, validateResponses) {
           example.responses.forEach(function (response) {
             var valid = isValidRequestOrResponse(response);
             if (valid !== true) {
-              var errorMessage = '    ' + valid.message.replace(/\n/g, '\n    ');
-              errors.push("Error in JSON response '" + response.name + "' for action '" + action.name + "' in '" + resource.name + "':\n" + errorMessage);
+              var message = '    ' + valid.message.replace(/\n/g, '\n    ');
+              var position = errorPosition(example, action, resource, resourceGroup);
+              errors.push('Error in JSON response ' + position + '\n' + message);
             }
           });
         }
