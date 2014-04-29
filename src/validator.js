@@ -1,6 +1,5 @@
 var fs = require('fs'),
-  protagonist = require('protagonist'),
-  colors = require('colors');
+  protagonist = require('protagonist');
 
 function lineNumberFromCharacterIndex(string, index) {
   return string.substring(0, index).split("\n").length;
@@ -20,7 +19,7 @@ function examples(ast, callback) {
           var example = action.examples[l];
 
           callback(example, action, resource);
-        } 
+        }
       }
     }
   }
@@ -47,7 +46,7 @@ function isResponseValid(response) {
     }
   }
 
-  return true;  
+  return true;
 }
 
 module.exports = function (fileName) {
