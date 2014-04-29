@@ -27,7 +27,8 @@ function isJsonContentType(headers) {
 function isValidRequestOrResponse(requestOrResponse) {
   if (isJsonContentType(requestOrResponse.headers)) {
     try {
-      jsonParser.parse(requestOrResponse.body);
+      var body = requestOrResponse.body;
+      jsonParser.parse(body);
     } catch (e) {
       return e;
     }
@@ -36,7 +37,7 @@ function isValidRequestOrResponse(requestOrResponse) {
   return true;
 }
 
-module.exports = function (fileName) {
+module.exports = function (fileName, validateRequests, validateResponses) {
   fs.readFile(fileName, 'utf8', function (error, data) {
     if (error) {
       console.error('Could not open ' + fileName);
@@ -58,21 +59,25 @@ module.exports = function (fileName) {
       var errors = [];
 
       examples(result.ast, function (example, action, resource) {
-        example.requests.forEach(function (request) {
-          var valid = isValidRequestOrResponse(request);
-          if (valid !== true) {
-            var errorMessage = '    ' + valid.message.replace(/\n/g, '\n    ');
-            errors.push("Error in JSON request '" + request.name + "' for action '" + action.name + "' in '" + resource.name + "':\n" + errorMessage);
-          }
-        });
+        if (validateRequests) {
+          example.requests.forEach(function (request) {
+            var valid = isValidRequestOrResponse(request);
+            if (valid !== true) {
+              var errorMessage = '    ' + valid.message.replace(/\n/g, '\n    ');
+              errors.push("Error in JSON request for action '" + action.name + "' in '" + resource.name + "':\n" + errorMessage);
+            }
+          });
+        }
 
-        example.responses.forEach(function (response) {
-          var valid = isValidRequestOrResponse(response);
-          if (valid !== true) {
-            var errorMessage = '    ' + valid.message.replace(/\n/g, '\n    ');
-            errors.push("Error in JSON response '" + response.name + "' for action '" + action.name + "' in '" + resource.name + "':\n" + errorMessage);
-          }
-        });
+        if (validateResponses) {
+          example.responses.forEach(function (response) {
+            var valid = isValidRequestOrResponse(response);
+            if (valid !== true) {
+              var errorMessage = '    ' + valid.message.replace(/\n/g, '\n    ');
+              errors.push("Error in JSON response '" + response.name + "' for action '" + action.name + "' in '" + resource.name + "':\n" + errorMessage);
+            }
+          });
+        }
       });
 
       if (errors.length > 0) {

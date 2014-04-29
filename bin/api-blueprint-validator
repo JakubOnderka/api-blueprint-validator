@@ -1,10 +1,21 @@
 #!/usr/bin/env node
-var argv = require('yargs').argv;
+var yargs = require('yargs')
+    .usage('Usage: $0 apiary.apib ')
+    .boolean(['validate-requests', 'validate-responses'])
+    .default('validate-requests', true)
+    .default('validate-responses', true),
+  argv = yargs.argv;
+
+if (argv.help) {
+  console.log(yargs.help());
+  return;
+}
 
 if (argv._[0] === undefined) {
-  console.error("Error: Must specify path to blueprint file.");
+  console.error("Error: Must specify path to blueprint file.\n");
+  console.log(yargs.help());
   return;
 }
 
 var validator = require('../src/validator');
-validator(argv._[0]);
+validator(argv._[0], argv.validateRequests, argv.validateResponses);
