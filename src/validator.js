@@ -7,41 +7,27 @@ function lineNumberFromCharacterIndex(string, index) {
 }
 
 function examples(ast, callback) {
-  for (var i in ast.resourceGroups) {
-    var resourceGroup = ast.resourceGroups[i];
-
-    for (var j in resourceGroup.resources) {
-      var resource = resourceGroup.resources[j];
-
-      for (var k in resource.actions) {
-        var action = resource.actions[k];
-
-        for (var l in action.examples) {
-          var example = action.examples[l];
-
+  ast.resourceGroups.forEach(function (resourceGroup) {
+    resourceGroup.resources.forEach(function (resource) {
+      resource.actions.forEach(function (action) {
+        action.examples.forEach(function (example) {
           callback(example, action, resource);
-        }
-      }
-    }
-  }
+        });
+      });
+    });
+  });
 }
 
-function isJsonResponse(response) {
-  for (var i in response.headers) {
-    var header = response.headers[i];
-
-    if (header.name === 'Content-Type') {
-      return header.value === 'application/json';
-    }
-  }
-
-  return false;
+function isJsonContentType(headers) {
+  return headers.some(function (header) {
+    return header.name === 'Content-Type' && header.value === 'application/json';
+  });
 }
 
-function isResponseValid(response) {
-  if (isJsonResponse(response)) {
+function isValidRequestOrResponse(requestOrResponse) {
+  if (isJsonContentType(requestOrResponse.headers)) {
     try {
-      jsonParser.parse(response.body);
+      jsonParser.parse(requestOrResponse.body);
     } catch (e) {
       return e;
     }
@@ -64,22 +50,29 @@ module.exports = function (fileName) {
         process.exit(1);
       }
 
-      for (var j in result.warnings) {
-        var lineNumber = lineNumberFromCharacterIndex(data, result.warnings[j].location[0].index);
-        console.error('Warning: ' + result.warnings[j].message + ' on line ' + lineNumber);
-      }
+      result.warnings.forEach(function (warning) {
+        var lineNumber = lineNumberFromCharacterIndex(data, warning.location[0].index);
+        console.error('Warning: ' + warning.message + ' on line ' + lineNumber);
+      });
 
       var errors = [];
 
       examples(result.ast, function (example, action, resource) {
-        for (var i in example.responses) {
-          var response = example.responses[i];
-          var valid = isResponseValid(response);
+        example.requests.forEach(function (request) {
+          var valid = isValidRequestOrResponse(request);
+          if (valid !== true) {
+            var errorMessage = '    ' + valid.message.replace(/\n/g, '\n    ');
+            errors.push("Error in JSON request '" + request.name + "' for action '" + action.name + "' in '" + resource.name + "':\n" + errorMessage);
+          }
+        });
+
+        example.responses.forEach(function (response) {
+          var valid = isValidRequestOrResponse(response);
           if (valid !== true) {
             var errorMessage = '    ' + valid.message.replace(/\n/g, '\n    ');
             errors.push("Error in JSON response '" + response.name + "' for action '" + action.name + "' in '" + resource.name + "':\n" + errorMessage);
           }
-        }
+        });
       });
 
       if (errors.length > 0) {
