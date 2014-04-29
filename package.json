@@ -1,0 +1,21 @@
+{
+  "name": "api-blueprint-validator",
+  "version": "0.1",
+  "description": "API Blueprint Validator",
+  "author": "Jakub Ondeka <jakub.onderka@gmail.com>",
+  "bin": {
+    "api-blueprint-validator": "bin/api-blueprint-validator"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JakubOnderka/api-blueprint-validator.git"
+  },
+  "engines": {
+    "node": ">=0.8.15"
+  },
+  "dependencies": {
+    "protagonist": "0.11.0",
+    "yargs": "1.2.1"
+  },
+  "license": "MIT"
+}

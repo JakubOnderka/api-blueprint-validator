@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+var argv = require('yargs').argv;
+
+if (argv._[0] === undefined) {
+  console.error("Error: Must specify path to blueprint file.");
+  return;
+}
+
+var validator = require('../src/validator');
+validator(argv._[0]);
