@@ -1,7 +1,10 @@
 API Blueprint Validator
 =======================
 
-API Blueprint Validator is a simple for validating Apiary API blueprint format and JSON request and responses.
+API Blueprint Validator is a simple for validating [Apiary][apiary] [API Blueprint][blueprint] format and JSON request and responses.
+
+[apiary]: http://apiary.io/
+[blueprint]: http://apiary.io/blueprint
 
 ## Examples outputs 
 
