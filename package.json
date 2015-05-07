@@ -1,6 +1,6 @@
 {
   "name": "api-blueprint-validator",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "API Blueprint Validator",
   "author": "Jakub Ondeka <jakub.onderka@gmail.com>",
   "bin": {
