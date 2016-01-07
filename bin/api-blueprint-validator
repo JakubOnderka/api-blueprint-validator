@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 var yargs = require('yargs')
     .usage('Usage: $0 apiary.apib ')
-    .boolean(['validate-requests', 'validate-responses'])
+    .boolean(['validate-requests', 'validate-responses', 'fail-on-warning'])
     .default('validate-requests', true)
-    .default('validate-responses', true),
+    .default('validate-responses', true)
+    .default('fail-on-warning', false),
   argv = yargs.argv;
 
 if (argv.help) {
@@ -18,4 +19,4 @@ if (argv._[0] === undefined) {
 }
 
 var validator = require('../src/validator');
-validator(argv._[0], argv.validateRequests, argv.validateResponses);
+validator(argv._[0], argv.validateRequests, argv.validateResponses, argv.failOnWarning);
