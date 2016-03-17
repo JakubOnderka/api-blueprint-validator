@@ -1,5 +1,5 @@
 var fs = require('fs'),
-  protagonist = require('protagonist'),
+  drafter = require('drafter.js'),
   jsonParser = require('jsonlint').parser;
 
 function lineNumberFromCharacterIndex(string, index) {
@@ -57,14 +57,14 @@ function errorPosition(example, action, resource, resourceGroup) {
   return 'in ' + output.join(', ');
 }
 
-module.exports = function (fileName, validateRequests, validateResponses) {
+module.exports = function (fileName, validateRequests, validateResponses, failOnWarning) {
   fs.readFile(fileName, 'utf8', function (error, data) {
     if (error) {
       console.error('Could not open ' + fileName);
       return;
     }
 
-    protagonist.parse(data, function (error, result) {
+    drafter.parse(data, {type:'ast'}, function (error, result) {
       if (error) {
         var lineNumber = lineNumberFromCharacterIndex(data, error.location[0].index);
         console.error('Error: ' + error.message + ' on line ' + lineNumber);
@@ -74,6 +74,9 @@ module.exports = function (fileName, validateRequests, validateResponses) {
       result.warnings.forEach(function (warning) {
         var lineNumber = lineNumberFromCharacterIndex(data, warning.location[0].index);
         console.error('Warning: ' + warning.message + ' on line ' + lineNumber);
+        if (failOnWarning){
+          process.exit(1);
+        }
       });
 
       var errors = [];
