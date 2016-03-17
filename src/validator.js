@@ -1,5 +1,5 @@
 var fs = require('fs'),
-  protagonist = require('protagonist'),
+  drafter = require('drafter.js'),
   jsonParser = require('jsonlint').parser;
 
 function lineNumberFromCharacterIndex(string, index) {
@@ -64,7 +64,7 @@ module.exports = function (fileName, validateRequests, validateResponses, failOn
       return;
     }
 
-    protagonist.parse(data, {type:'ast'}, function (error, result) {
+    drafter.parse(data, {type:'ast'}, function (error, result) {
       if (error) {
         var lineNumber = lineNumberFromCharacterIndex(data, error.location[0].index);
         console.error('Error: ' + error.message + ' on line ' + lineNumber);
