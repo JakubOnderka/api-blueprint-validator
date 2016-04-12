@@ -64,7 +64,7 @@ module.exports = function (fileName, validateRequests, validateResponses) {
       return;
     }
 
-    protagonist.parse(data, function (error, result) {
+    protagonist.parse(data, {type: 'ast'}, function (error, result) {
       if (error) {
         var lineNumber = lineNumberFromCharacterIndex(data, error.location[0].index);
         console.error('Error: ' + error.message + ' on line ' + lineNumber);
