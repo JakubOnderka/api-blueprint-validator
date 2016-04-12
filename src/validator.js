@@ -57,7 +57,7 @@ function errorPosition(example, action, resource, resourceGroup) {
   return 'in ' + output.join(', ');
 }
 
-module.exports = function (fileName, validateRequests, validateResponses) {
+module.exports = function (fileName, validateRequests, validateResponses, failOnWarnings) {
   fs.readFile(fileName, 'utf8', function (error, data) {
     if (error) {
       console.error('Could not open ' + fileName);
@@ -104,6 +104,9 @@ module.exports = function (fileName, validateRequests, validateResponses) {
 
       if (errors.length > 0) {
         console.error(errors.join('\n\n'));
+      }
+
+      if (errors.length > 0 || failOnWarnings && result.warnings.length > 0) {
         process.exit(1);
       }
     });
