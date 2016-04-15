@@ -14,9 +14,11 @@
     "node": ">=0.11.x"
   },
   "dependencies": {
+    "glob-fs": "^0.1.6",
+    "is-glob": "^2.0.1",
+    "jsonlint": "1.6.0",
     "protagonist": ">=1.0.0",
-    "yargs": "1.2.1",
-    "jsonlint": "1.6.0"
+    "yargs": "1.2.1"
   },
   "license": "MIT"
 }
