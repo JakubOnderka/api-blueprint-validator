@@ -71,10 +71,12 @@ module.exports = function (fileName, validateRequests, validateResponses) {
         process.exit(1);
       }
 
-      result.warnings.forEach(function (warning) {
-        var lineNumber = lineNumberFromCharacterIndex(data, warning.location[0].index);
-        console.error('Warning: ' + warning.message + ' on line ' + lineNumber);
-      });
+      if(result.wanrings) {
+        result.warnings.forEach(function (warning) {
+          var lineNumber = lineNumberFromCharacterIndex(data, warning.location[0].index);
+          console.error('Warning: ' + warning.message + ' on line ' + lineNumber);
+        });
+      }
 
       var errors = [];
 
