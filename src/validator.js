@@ -80,29 +80,32 @@ module.exports = function (fileName, validateRequests, validateResponses) {
 
       var errors = [];
 
-      examples(result.ast, function (example, action, resource, resourceGroup) {
-        if (validateRequests) {
-          example.requests.forEach(function (request) {
-            var valid = isValidRequestOrResponse(request);
-            if (valid !== true) {
-              var message = '    ' + valid.message.replace(/\n/g, '\n    ');
-              var position = errorPosition(example, action, resource, resourceGroup);
-              errors.push('Error in JSON request ' + position + '\n' + message);
-            }
-          });
-        }
+      if(result.ast) {
+        examples(result.ast, function (example, action, resource, resourceGroup) {
+          if (validateRequests) {
+            example.requests.forEach(function (request) {
+              var valid = isValidRequestOrResponse(request);
+              if (valid !== true) {
+                var message = '    ' + valid.message.replace(/\n/g, '\n    ');
+                var position = errorPosition(example, action, resource, resourceGroup);
+                errors.push('Error in JSON request ' + position + '\n' + message);
+              }
+            });
+          }
 
-        if (validateResponses) {
-          example.responses.forEach(function (response) {
-            var valid = isValidRequestOrResponse(response);
-            if (valid !== true) {
-              var message = '    ' + valid.message.replace(/\n/g, '\n    ');
-              var position = errorPosition(example, action, resource, resourceGroup);
-              errors.push('Error in JSON response ' + position + '\n' + message);
-            }
-          });
-        }
-      });
+          if (validateResponses) {
+            example.responses.forEach(function (response) {
+              var valid = isValidRequestOrResponse(response);
+              if (valid !== true) {
+                var message = '    ' + valid.message.replace(/\n/g, '\n    ');
+                var position = errorPosition(example, action, resource, resourceGroup);
+                errors.push('Error in JSON response ' + position + '\n' + message);
+              }
+            });
+          }
+        });
+      }
+
 
       if (errors.length > 0) {
         console.error(errors.join('\n\n'));
