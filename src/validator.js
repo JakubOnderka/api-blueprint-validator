@@ -1,6 +1,7 @@
 var fs = require('fs'),
   protagonist = require('protagonist'),
-  jsonParser = require('jsonlint').parser;
+  jsonParser = require('jsonlint').parser,
+  util = require('util');
 
 function lineNumberFromCharacterIndex(string, index) {
   return string.substring(0, index).split("\n").length;
@@ -102,7 +103,7 @@ module.exports = function (fileName, validateRequests, validateResponses) {
               if (valid !== true) {
                 var message = '    ' + valid.message.replace(/\n/g, '\n    ');
                 var position = errorPosition(example, action, resource, resourceGroup);
-                errors.push('Error in JSON request ' + position + '\n' + message);
+                errors.push('Error in JSON request ' + position + '\n' + message + '\n\nJSON:' + util.inspect(json, false, null));
               }
             });
           });
@@ -116,7 +117,7 @@ module.exports = function (fileName, validateRequests, validateResponses) {
               if (valid !== true) {
                 var message = '    ' + valid.message.replace(/\n/g, '\n    ');
                 var position = errorPosition(example, action, resource, resourceGroup);
-                errors.push('Error in JSON response ' + position + '\n' + message);
+                errors.push('Error in JSON response ' + position + '\n' + message + '\n\nJSON:' + util.inspect(json, false, null));
               }
             });
           });
