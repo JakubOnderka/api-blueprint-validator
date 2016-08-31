@@ -24,23 +24,29 @@ function isJsonContentType(headers) {
   });
 }
 
-// when body is empty it may mean that we need to parse schema
-function getJsonFromRequestOrResponse(requestOrResponse) {
-  if (requestOrResponse.body != '') {
-    return requestOrResponse.body;
+function getJsonsFromRequestOrResponse(requestOrResponse) {
+  if (!isJsonContentType(requestOrResponse.headers)) {
+    return [];
   }
 
-  return requestOrResponse.schema;
+  var jsons = [];
+
+  if (requestOrResponse.body != '') {
+    jsons.push(requestOrResponse.body);
+  }
+
+  if (requestOrResponse.schema != '') {
+    jsons.push(requestOrResponse.schema);
+  }
+
+  return jsons;
 }
 
-function isValidRequestOrResponse(requestOrResponse) {
-  if (isJsonContentType(requestOrResponse.headers)) {
-    try {
-      var json = getJsonFromRequestOrResponse(requestOrResponse);
-      jsonParser.parse(json);
-    } catch (e) {
-      return e;
-    }
+function isValidRequestOrResponse(json) {
+  try {
+    jsonParser.parse(json);
+  } catch (e) {
+    return e;
   }
 
   return true;
@@ -90,23 +96,29 @@ module.exports = function (fileName, validateRequests, validateResponses) {
       examples(result.ast, function (example, action, resource, resourceGroup) {
         if (validateRequests) {
           example.requests.forEach(function (request) {
-            var valid = isValidRequestOrResponse(request);
-            if (valid !== true) {
-              var message = '    ' + valid.message.replace(/\n/g, '\n    ');
-              var position = errorPosition(example, action, resource, resourceGroup);
-              errors.push('Error in JSON request ' + position + '\n' + message);
-            }
+            var jsons = getJsonsFromRequestOrResponse(request);
+            jsons.forEach(function (json) {
+              var valid = isValidRequestOrResponse(json);
+              if (valid !== true) {
+                var message = '    ' + valid.message.replace(/\n/g, '\n    ');
+                var position = errorPosition(example, action, resource, resourceGroup);
+                errors.push('Error in JSON request ' + position + '\n' + message);
+              }
+            });
           });
         }
 
         if (validateResponses) {
           example.responses.forEach(function (response) {
-            var valid = isValidRequestOrResponse(response);
-            if (valid !== true) {
-              var message = '    ' + valid.message.replace(/\n/g, '\n    ');
-              var position = errorPosition(example, action, resource, resourceGroup);
-              errors.push('Error in JSON response ' + position + '\n' + message);
-            }
+            var jsons = getJsonsFromRequestOrResponse(response);
+            jsons.forEach(function (json) {
+              var valid = isValidRequestOrResponse(json);
+              if (valid !== true) {
+                var message = '    ' + valid.message.replace(/\n/g, '\n    ');
+                var position = errorPosition(example, action, resource, resourceGroup);
+                errors.push('Error in JSON response ' + position + '\n' + message);
+              }
+            });
           });
         }
       });
