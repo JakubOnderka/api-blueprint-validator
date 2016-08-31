@@ -24,11 +24,20 @@ function isJsonContentType(headers) {
   });
 }
 
+// when body is empty it may mean that we need to parse schema
+function getJsonFromRequestOrResponse(requestOrResponse) {
+  if (requestOrResponse.body != '') {
+    return requestOrResponse.body;
+  }
+
+  return requestOrResponse.schema;
+}
+
 function isValidRequestOrResponse(requestOrResponse) {
   if (isJsonContentType(requestOrResponse.headers)) {
     try {
-      var body = requestOrResponse.body;
-      jsonParser.parse(body);
+      var json = getJsonFromRequestOrResponse(requestOrResponse);
+      jsonParser.parse(json);
     } catch (e) {
       return e;
     }
