@@ -1,6 +1,7 @@
 var fs = require('fs'),
   protagonist = require('protagonist'),
-  jsonParser = require('jsonlint').parser;
+  jsonParser = require('jsonlint').parser,
+  util = require('util');
 
 function lineNumberFromCharacterIndex(string, index) {
   return string.substring(0, index).split("\n").length;
@@ -24,14 +25,29 @@ function isJsonContentType(headers) {
   });
 }
 
-function isValidRequestOrResponse(requestOrResponse) {
-  if (isJsonContentType(requestOrResponse.headers)) {
-    try {
-      var body = requestOrResponse.body;
-      jsonParser.parse(body);
-    } catch (e) {
-      return e;
-    }
+function getJsonsFromRequestOrResponse(requestOrResponse) {
+  if (!isJsonContentType(requestOrResponse.headers)) {
+    return [];
+  }
+
+  var jsons = [];
+
+  if (requestOrResponse.body != '') {
+    jsons.push(requestOrResponse.body);
+  }
+
+  if (requestOrResponse.schema != '') {
+    jsons.push(requestOrResponse.schema);
+  }
+
+  return jsons;
+}
+
+function isValidRequestOrResponse(json) {
+  try {
+    jsonParser.parse(json);
+  } catch (e) {
+    return e;
   }
 
   return true;
@@ -64,7 +80,7 @@ module.exports = function (fileName, validateRequests, validateResponses) {
       return;
     }
 
-    protagonist.parse(data, function (error, result) {
+    protagonist.parse(data, {type: 'ast'}, function (error, result) {
       if (error) {
         var lineNumber = lineNumberFromCharacterIndex(data, error.location[0].index);
         console.error('Error: ' + error.message + ' on line ' + lineNumber);
@@ -81,23 +97,29 @@ module.exports = function (fileName, validateRequests, validateResponses) {
       examples(result.ast, function (example, action, resource, resourceGroup) {
         if (validateRequests) {
           example.requests.forEach(function (request) {
-            var valid = isValidRequestOrResponse(request);
-            if (valid !== true) {
-              var message = '    ' + valid.message.replace(/\n/g, '\n    ');
-              var position = errorPosition(example, action, resource, resourceGroup);
-              errors.push('Error in JSON request ' + position + '\n' + message);
-            }
+            var jsons = getJsonsFromRequestOrResponse(request);
+            jsons.forEach(function (json) {
+              var valid = isValidRequestOrResponse(json);
+              if (valid !== true) {
+                var message = '    ' + valid.message.replace(/\n/g, '\n    ');
+                var position = errorPosition(example, action, resource, resourceGroup);
+                errors.push('Error in JSON request ' + position + '\n' + message + '\n\nJSON:' + util.inspect(json, false, null));
+              }
+            });
           });
         }
 
         if (validateResponses) {
           example.responses.forEach(function (response) {
-            var valid = isValidRequestOrResponse(response);
-            if (valid !== true) {
-              var message = '    ' + valid.message.replace(/\n/g, '\n    ');
-              var position = errorPosition(example, action, resource, resourceGroup);
-              errors.push('Error in JSON response ' + position + '\n' + message);
-            }
+            var jsons = getJsonsFromRequestOrResponse(response);
+            jsons.forEach(function (json) {
+              var valid = isValidRequestOrResponse(json);
+              if (valid !== true) {
+                var message = '    ' + valid.message.replace(/\n/g, '\n    ');
+                var position = errorPosition(example, action, resource, resourceGroup);
+                errors.push('Error in JSON response ' + position + '\n' + message + '\n\nJSON:' + util.inspect(json, false, null));
+              }
+            });
           });
         }
       });
