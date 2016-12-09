@@ -18,6 +18,7 @@
     "is-glob": "^2.0.1",
     "jsonlint": "1.6.0",
     "yargs": "1.2.1",
+    "ajv":"^4.9.0",
     "protagonist": ">=1.0.0"
   },
   "license": "MIT"

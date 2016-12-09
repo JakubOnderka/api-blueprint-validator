@@ -3,6 +3,7 @@ var fs = require('fs'),
   isGlob = require('is-glob'),
   protagonist = require('protagonist'),
   jsonParser = require('jsonlint').parser;
+  ajv = require('ajv');
 
 function lineNumberFromCharacterIndex(string, index) {
   return string.substring(0, index).split("\n").length;
@@ -72,6 +73,7 @@ function lint(file, data, options) {
           }
         });
       }
+      else console.log("Warning: No result.ast.");
 
       if (errors.length > 0) {
         console.error(errors.join('\n\n'));
@@ -131,9 +133,41 @@ function isJsonContentType(headers) {
 
 function isValidRequestOrResponse(requestOrResponse) {
   if (isJsonContentType(requestOrResponse.headers)) {
+    // check body
     try {
       var body = requestOrResponse.body;
       jsonParser.parse(body);
+    } catch (e) {
+      return e;
+    }
+    // schema, if exists, should be a valid json
+    try {
+      var schema = requestOrResponse.schema;
+      if ( schema.length > 0 ) {
+        jsonParser.parse(schema);
+       }
+    } catch (e) {
+      return e;
+    }
+    // also check schema definitions with ajv
+    try {
+      if ( schema.length > 0 ) {
+        schema = JSON.parse(requestOrResponse.schema);
+        if ( Object.keys(schema).length > 0 ) {
+          var jsconSchemaParser = ajv({verbose:true, allErrors:true, format:'full',v5:true,unicode:true});
+          jsconSchemaParser.validateSchema(schema);
+          if (jsconSchemaParser.errors !== null ) {
+           exceptionMsg = "Error validating schema:\n";
+           for (var key in jsconSchemaParser.errors) {
+             exceptionMsg = exceptionMsg + '\tValue rasing validation error:\t\t\t"' + jsconSchemaParser.errors[key].data + '".\n';
+             exceptionMsg = exceptionMsg + '\tPath within schema:\t\t\t\t"' + jsconSchemaParser.errors[key].dataPath + '".\n';
+             exceptionMsg = exceptionMsg + "\tProbably " + jsconSchemaParser.errors[key].message + ': "' +
+                            jsconSchemaParser.errors[key].schema + '"' + '.\n\n';
+           }
+           throw new Error(exceptionMsg);
+          }
+         } else console.log("schema.length < 0");
+      }
     } catch (e) {
       return e;
     }
