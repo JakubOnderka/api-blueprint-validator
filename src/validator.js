@@ -125,8 +125,8 @@ function examples(ast, callback) {
 
 function isJsonContentType(headers) {
   return headers.some(function (header) {
-    return header.name === 'Content-Type' && header.value === 'application/json';
-  });
+    return header.name === 'Content-Type' && /application\/json/.test(header.value); // header may also contain other info, i.e. encoding:
+  });                                                                                 //"application/json; charset=utf-8", so use regexp here.
 }
 
 function isValidRequestOrResponse(requestOrResponse) {
