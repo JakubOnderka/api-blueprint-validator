@@ -10,10 +10,10 @@ function lineNumberFromCharacterIndex(string, index) {
 }
 
 function hasImportantWarning(result,parserOptions) {
-  has_important_warnings = False;
+  has_important_warnings = false;
   result.warnings.forEach(function(warning) {
     if ((warning.indexOf('expected API name') !== -1) && ! parserOptions.requireBlueprintName) return;
-    has_important_warnings = True;
+    has_important_warnings = true;
   });
   return has_important_warnings;
 }
