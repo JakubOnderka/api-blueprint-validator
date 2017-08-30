@@ -7,6 +7,9 @@ function lineNumberFromCharacterIndex(string, index) {
 }
 
 function examples(ast, callback) {
+  if (typeof ast === "undefined") {
+	return;  	
+  }
   ast.resourceGroups.forEach(function (resourceGroup) {
     resourceGroup.resources.forEach(function (resource) {
       resource.actions.forEach(function (action) {
@@ -71,10 +74,12 @@ module.exports = function (fileName, validateRequests, validateResponses) {
         process.exit(1);
       }
 
-      result.warnings.forEach(function (warning) {
-        var lineNumber = lineNumberFromCharacterIndex(data, warning.location[0].index);
-        console.error('Warning: ' + warning.message + ' on line ' + lineNumber);
-      });
+	  if (result.hasOwnProperty("warnings")) {
+      	      result.warnings.forEach(function (warning) {
+      	  	       var lineNumber = lineNumberFromCharacterIndex(data, warning.location[0].index);
+      	  	       console.error('Warning: ' + warning.message + ' on line ' + lineNumber);
+      	  	  });	
+      }
 
       var errors = [];
 
